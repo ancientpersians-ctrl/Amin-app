@@ -37,7 +37,9 @@ jobs:
       - name: Flutter doctor
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter doctor -v
-
+      - name: Fix broken tesseract package
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: sed -i 's/tesseract_ocr:/# tesseract_ocr:/g' pubspec.yaml
       - name: Get dependencies
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter pub get
