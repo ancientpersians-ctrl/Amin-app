@@ -31,7 +31,9 @@ jobs:
         with:
           channel: stable
           cache: true
-
+      - name: Generate Android platform
+        working-directory: ./amin_project/amin_app
+        run: flutter create --platforms=android .    
       - name: Flutter doctor
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter doctor -v
