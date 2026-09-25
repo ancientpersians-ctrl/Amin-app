@@ -1,0 +1,58 @@
+name: Build Amin APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Amin project
+        run: |
+          mkdir -p amin_project
+          unzip -o amin_app_phase6_release_harness.zip -d amin_project
+
+          echo "Searching for pubspec.yaml..."
+          find amin_project -name pubspec.yaml -print
+
+          PROJECT_DIR=$(dirname "$(find amin_project -name pubspec.yaml -print -quit)")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Project directory: $PROJECT_DIR"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter doctor
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter doctor -v
+
+      - name: Get dependencies
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter pub get
+
+      - name: Build release APK
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter build apk --release
+
+      - name: Find APK
+        run: |
+          echo "APK files:"
+          find "$PROJECT_DIR/build/app/outputs/flutter-apk" \
+            -type f -name "*.apk" -print
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Amin-release-APK
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
